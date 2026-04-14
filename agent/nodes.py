@@ -8,7 +8,7 @@ from .state import ReviewState
 load_dotenv()
 
 # Set up the Groq AI brain using Llama 3.1
-llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.7)
+llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.7)
 
 def extract_github_data(state: ReviewState):
     username = state["username"]

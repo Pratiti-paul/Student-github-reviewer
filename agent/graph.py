@@ -12,4 +12,3 @@ builder.add_edge("data_extractor", "code_mentor")
 builder.add_edge("code_mentor", END)
 
 github_reviewer_app = builder.compile()
-l
