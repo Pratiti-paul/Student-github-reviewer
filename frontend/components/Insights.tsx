@@ -4,19 +4,15 @@ import { ThumbsUp, AlertTriangle, Lightbulb, UserMinus, Activity, FolderGit2 } f
 interface InsightsProps {
   strengths: string[];
   weaknesses: string[];
-  suggestions: string[];
   missing_skills: string[];
-  activity_insights: string[];
-  project_insights: string[];
+  top_projects: string[];
 }
 
 export default function Insights({
   strengths,
   weaknesses,
-  suggestions,
   missing_skills,
-  activity_insights,
-  project_insights,
+  top_projects,
 }: InsightsProps) {
   const ListSection = ({ title, items, icon: Icon, colorClass }: { title: string, items: string[], icon: any, colorClass: string }) => {
     if (!items || items.length === 0) return null;
@@ -49,19 +45,9 @@ export default function Insights({
 
       {/* Right Column */}
       <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 h-full">
-        <ListSection title="Suggestions for Improvement" items={suggestions} icon={Lightbulb} colorClass="text-blue-500" />
-        <div className="h-px bg-slate-100 my-6"></div>
         <ListSection title="Missing Skills to Learn" items={missing_skills} icon={UserMinus} colorClass="text-purple-500" />
-      </div>
-
-      {/* Additional Insights - Full width */}
-      <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100">
-          <ListSection title="Activity Insights" items={activity_insights} icon={Activity} colorClass="text-indigo-500" />
-        </div>
-        <div className="bg-white rounded-2xl p-6 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100">
-          <ListSection title="Project Insights" items={project_insights} icon={FolderGit2} colorClass="text-teal-500" />
-        </div>
+        <div className="h-px bg-slate-100 my-6"></div>
+        <ListSection title="Top AI Recommended Projects" items={top_projects} icon={Lightbulb} colorClass="text-blue-500" />
       </div>
     </div>
   );

@@ -28,9 +28,6 @@ def review_portfolio(request: ReviewRequest):
     # 2. Tell the LangGraph brain to start thinking!
     result = github_reviewer_app.invoke(initial_state)
     
-    # 3. Return the AI's final answer
-    return {
-        "username": result["username"], 
-        "extracted_data": result.get("github_data"),
-        "mentor_feedback": result.get("feedback")
-    }
+    # 3. Return the AI's final answer flattenly
+    feedback_data = result.get("feedback", {})
+    return feedback_data

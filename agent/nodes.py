@@ -20,17 +20,33 @@ def extract_github_data(state: ReviewState):
         user_url = f"https://api.github.com/users/{username}"
         user_resp = requests.get(user_url, headers=headers)
         
-        repos_url = f"https://api.github.com/users/{username}/repos?sort=updated&per_page=5"
+        repos_url = f"https://api.github.com/users/{username}/repos?per_page=100"
         repos_resp = requests.get(repos_url, headers=headers)
         
         if user_resp.status_code == 200 and repos_resp.status_code == 200:
             repos_data = repos_resp.json()
-            repo_names = [repo["name"] for repo in repos_data]
-            languages = list(set([repo["language"] for repo in repos_data if repo["language"]]))
             
+            # Sort by stargazers_count descending
+            repos_data.sort(key=lambda x: x.get("stargazers_count", 0) or 0, reverse=True)
+            top_repos = repos_data[:10]
+            
+            detailed_repos = []
+            languages_set = set()
+            for repo in top_repos:
+                detailed_repos.append({
+                    "name": repo.get("name"),
+                    "description": repo.get("description"),
+                    "stargazers_count": repo.get("stargazers_count"),
+                    "forks_count": repo.get("forks_count"),
+                    "language": repo.get("language"),
+                    "updated_at": repo.get("updated_at")
+                })
+                if repo.get("language"):
+                    languages_set.add(repo.get("language"))
+                    
             real_data = {
-                "recent_repos": repo_names,
-                "primary_languages": languages,
+                "top_repositories": detailed_repos,
+                "primary_languages": list(languages_set),
                 "public_repos_count": user_resp.json().get("public_repos", 0)
             }
             return {"github_data": real_data}
@@ -45,31 +61,46 @@ def code_mentor_review(state: ReviewState):
     data = state.get("github_data", {})
     
     prompt = f"""
-    You are a Senior Software Engineer and Hiring Manager evaluating a candidate's GitHub portfolio.
-    Analyze the GitHub portfolio data for '{username}'.
+    You are a senior software engineer and hiring manager.
     
-    Data: {json.dumps(data, indent=2)}
+    You are given detailed GitHub repository data of a developer.
     
-    You MUST analyze the portfolio and generate deep insights on:
-    1. Portfolio Strength (Quality/diversity of projects, modern tech, real-world impact)
-    2. Technical Skills (Languages/tech stack, dominant areas)
-    3. Activity & Consistency
-    4. Project Quality Signals (Based on recent repos, overall count, etc.)
-    5. Portfolio Gaps (Missing skills, areas to improve)
-    6. Hireability Evaluation (Beginner/Intermediate/Advanced; Not Ready/Intern-ready/Job-ready)
-
-    Return ONLY a raw, valid JSON object with the following exact keys and types. Do NOT include markdown blocks, backticks, or any conversational text.
+    Analyze EACH repository deeply.
+    
+    For every repo:
+    * Explain what the project likely does (based on name + description)
+    * Identify tech stack
+    * Judge project quality (beginner / intermediate / strong)
+    * Give 1 specific improvement
+    
+    Then provide:
+    1. Top 3 strongest projects (with reasoning)
+    2. Technical strengths (based on actual repos)
+    3. Weaknesses (based on missing patterns)
+    4. Missing skills (be specific: backend, APIs, deployment, etc.)
+    5. Hireability level (with reasoning)
+    
+    Be VERY specific. Avoid generic statements.
+    
+    Input:
+    {json.dumps(data, indent=2)}
+    
+    Return STRICT JSON:
     {{
-        "score": 0.0,
-        "level": "Beginner/Intermediate/Advanced",
-        "skills": [],
+        "projects": [
+            {{
+                "name": "",
+                "summary": "",
+                "tech_stack": [],
+                "quality": "",
+                "improvement": ""
+            }}
+        ],
+        "top_projects": [],
         "strengths": [],
         "weaknesses": [],
-        "suggestions": [],
         "missing_skills": [],
-        "activity_insights": [],
-        "project_insights": [],
-        "hireability": "Not Ready / Intern-ready / Job-ready"
+        "hireability": ""
     }}
     """
 
@@ -89,15 +120,11 @@ def code_mentor_review(state: ReviewState):
     except json.JSONDecodeError:
         # Fallback if malformed
         parsed_feedback = {
-            "score": 0,
-            "level": "Unknown",
-            "skills": [],
+            "projects": [],
+            "top_projects": [],
             "strengths": [],
-            "weaknesses": [],
-            "suggestions": ["Failed to parse AI response. Please try again."],
+            "weaknesses": ["Failed to parse AI response. Please try again."],
             "missing_skills": [],
-            "activity_insights": [],
-            "project_insights": [],
             "hireability": "Unknown"
         }
 

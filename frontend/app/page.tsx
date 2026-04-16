@@ -5,20 +5,16 @@ import axios from 'axios';
 import { Github } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import KPIcards from '../components/KPIcards';
-import Skills from '../components/Skills';
 import Insights from '../components/Insights';
+import Projects, { ProjectData } from '../components/Projects';
 import Loader from '../components/Loader';
 
 interface PortfolioData {
-  score?: number;
-  level?: string;
-  skills?: string[];
+  projects?: ProjectData[];
+  top_projects?: string[];
   strengths?: string[];
   weaknesses?: string[];
-  suggestions?: string[];
   missing_skills?: string[];
-  activity_insights?: string[];
-  project_insights?: string[];
   hireability?: string;
 }
 
@@ -96,20 +92,18 @@ export default function Home() {
         {data && !isLoading && (
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
             <KPIcards 
-              score={data.score || 0} 
-              level={data.level || 'Unknown'} 
               hireability={data.hireability || 'Unknown'} 
+              totalProjects={data.projects?.length || 0}
+              topProjectsCount={data.top_projects?.length || 0}
             />
             
-            <Skills skills={data.skills || []} />
+            <Projects projects={data.projects || []} />
             
             <Insights 
               strengths={data.strengths || []}
               weaknesses={data.weaknesses || []}
-              suggestions={data.suggestions || []}
               missing_skills={data.missing_skills || []}
-              activity_insights={data.activity_insights || []}
-              project_insights={data.project_insights || []}
+              top_projects={data.top_projects || []}
             />
           </div>
         )}
