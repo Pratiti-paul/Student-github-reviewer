@@ -16,12 +16,20 @@ app.add_middleware(
 class ReviewRequest(BaseModel):
     username: str
 
+# Simple in-memory cache
+REVIEW_CACHE = {}
+
 @app.get("/")
 def home():
     return {"message": "GitHub Reviewer backend is running perfectly!"}
 
 @app.post("/review")
 def review_portfolio(request: ReviewRequest):
+    # Check cache first
+    username_lower = request.username.lower().strip()
+    if username_lower in REVIEW_CACHE:
+        return REVIEW_CACHE[username_lower]
+
     # 1. Create the starting point for our agents
     initial_state = {"username": request.username}
     
@@ -30,4 +38,8 @@ def review_portfolio(request: ReviewRequest):
     
     # 3. Return the AI's final answer flattenly
     feedback_data = result.get("feedback", {})
+    
+    # Save to cache
+    REVIEW_CACHE[username_lower] = feedback_data
+    
     return feedback_data
