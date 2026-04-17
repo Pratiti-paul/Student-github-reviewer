@@ -8,6 +8,8 @@ import KPIcards from '../../../components/KPIcards';
 import Insights from '../../../components/Insights';
 import Projects from '../../../components/Projects';
 import Loader from '../../../components/Loader';
+import ContributionHeatmap from '../../../components/ContributionHeatmap';
+import LanguageChart from '../../../components/LanguageChart';
 
 interface TopProjectData {
   name: string;
@@ -27,6 +29,15 @@ interface PortfolioData {
   weaknesses?: string[];
   missing_skills?: string[];
   overall_portfolio_assessment?: OverallPortfolioAssessment;
+  metrics?: {
+    contribution_heatmap?: {
+      total: number;
+      streak_current: number;
+      streak_longest: number;
+      days: any[];
+    };
+    language_distribution?: any[];
+  };
 }
 
 export default function SharedReviewPage() {
@@ -69,7 +80,7 @@ export default function SharedReviewPage() {
   if (isLoading) {
     return (
       <main className="w-full pt-12 pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="max-w-6xl mx-auto flex flex-col items-center justify-center min-h-[60vh]">
           <Loader />
           <p className="mt-8 text-slate-400 font-medium animate-pulse italic">Retrieving persistent analysis for {username}...</p>
         </div>
@@ -101,7 +112,7 @@ export default function SharedReviewPage() {
 
   return (
     <main className="w-full pt-12 pb-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto space-y-24">
+      <div className="max-w-6xl mx-auto space-y-24">
         
         {/* Header & Actions */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-100">
@@ -132,7 +143,7 @@ export default function SharedReviewPage() {
 
         {/* Results Dashboard */}
         {data && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out space-y-24">
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out space-y-20">
             <KPIcards 
               assessment={data.overall_portfolio_assessment?.level}
               hireability={data.overall_portfolio_assessment?.hireability}
@@ -140,6 +151,21 @@ export default function SharedReviewPage() {
               totalProjects={data.projects?.length || 0}
               topProjectsCount={data.top_projects?.length || 0}
             />
+
+            {/* Visual Analytics Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+              <div className="lg:col-span-2">
+                <ContributionHeatmap 
+                  total={data.metrics?.contribution_heatmap?.total || 0}
+                  streakCurrent={data.metrics?.contribution_heatmap?.streak_current || 0}
+                  streakLongest={data.metrics?.contribution_heatmap?.streak_longest || 0}
+                  days={data.metrics?.contribution_heatmap?.days || []}
+                />
+              </div>
+              <div className="lg:col-span-1">
+                <LanguageChart data={data.metrics?.language_distribution || []} />
+              </div>
+            </div>
             
             <Projects projects={data.projects || []} />
             

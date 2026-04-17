@@ -2,14 +2,16 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Github, Check, Share2, ExternalLink } from 'lucide-react';
+import { Github, Check, Share2 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import Features from '../components/Features';
 import HowItWorks from '../components/HowItWorks';
 import KPIcards from '../components/KPIcards';
 import Insights from '../components/Insights';
-import Projects, { ProjectData } from '../components/Projects';
+import Projects from '../components/Projects';
 import Loader from '../components/Loader';
+import ContributionHeatmap from '../components/ContributionHeatmap';
+import LanguageChart from '../components/LanguageChart';
 
 interface TopProjectData {
   name: string;
@@ -29,6 +31,15 @@ interface PortfolioData {
   weaknesses?: string[];
   missing_skills?: string[];
   overall_portfolio_assessment?: OverallPortfolioAssessment;
+  metrics?: {
+    contribution_heatmap?: {
+      total: number;
+      streak_current: number;
+      streak_longest: number;
+      days: any[];
+    };
+    language_distribution?: any[];
+  };
 }
 
 export default function Home() {
@@ -81,7 +92,7 @@ export default function Home() {
 
   return (
     <main className="w-full pt-12 pb-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto space-y-24">
+      <div className="max-w-6xl mx-auto space-y-24">
         
         {/* Hero Section */}
         <div className="text-center space-y-6 mb-12">
@@ -114,22 +125,10 @@ export default function Home() {
           <div className="max-w-2xl mx-auto p-8 bg-white border-2 border-red-100 rounded-3xl shadow-[0_8px_30px_rgb(220,38,38,0.05)] animate-in fade-in slide-in-from-top-4 duration-500">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="p-3 bg-red-50 rounded-full text-red-600">
-                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                 </svg>
+                 <Check className="h-8 w-8" />
               </div>
               <div className="space-y-2">
                 <h3 className="text-xl font-bold text-slate-900">{error}</h3>
-                {error.includes("not found") && (
-                  <div className="text-left bg-slate-50 border border-slate-100 p-6 rounded-2xl mt-4 space-y-3">
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Please double-check:</p>
-                    <ul className="space-y-2 text-slate-600 text-sm font-medium">
-                      <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div> Spelling and capitalization</li>
-                      <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div> Profile existence on GitHub</li>
-                      <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div> No leading or trailing spaces</li>
-                    </ul>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -148,7 +147,7 @@ export default function Home() {
 
         {/* Results Dashboard */}
         {data && !isLoading && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out space-y-24">
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out space-y-20">
             
             {/* Share & Header */}
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-slate-100">
@@ -174,6 +173,21 @@ export default function Home() {
               totalProjects={data.projects?.length || 0}
               topProjectsCount={data.top_projects?.length || 0}
             />
+
+            {/* Visual Analytics Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+              <div className="lg:col-span-2">
+                <ContributionHeatmap 
+                  total={data.metrics?.contribution_heatmap?.total || 0}
+                  streakCurrent={data.metrics?.contribution_heatmap?.streak_current || 0}
+                  streakLongest={data.metrics?.contribution_heatmap?.streak_longest || 0}
+                  days={data.metrics?.contribution_heatmap?.days || []}
+                />
+              </div>
+              <div className="lg:col-span-1">
+                <LanguageChart data={data.metrics?.language_distribution || []} />
+              </div>
+            </div>
             
             <Projects projects={data.projects || []} />
             
