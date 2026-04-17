@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Github, Check } from 'lucide-react';
+import { Github, Check, Share2, ExternalLink } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import Features from '../components/Features';
 import HowItWorks from '../components/HowItWorks';
@@ -35,9 +35,10 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PortfolioData | null>(null);
+  const [searchedUsername, setSearchedUsername] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const handleSearch = async (username: string) => {
-    // 1. Validation & Reset
     const cleanUsername = username.trim();
     if (!cleanUsername) {
       setError("Please enter a GitHub username to begin the analysis.");
@@ -48,6 +49,7 @@ export default function Home() {
     setIsLoading(true);
     setError(null);
     setData(null);
+    setSearchedUsername(cleanUsername);
 
     try {
       const response = await axios.post(process.env.NEXT_PUBLIC_API_URL + '/review', {
@@ -67,6 +69,14 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleShare = () => {
+    if (!searchedUsername) return;
+    const shareUrl = `${window.location.origin}/review/${searchedUsername}`;
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -101,31 +111,31 @@ export default function Home() {
 
         {/* Error State */}
         {error && (
-            <div className="max-w-2xl mx-auto p-8 bg-white border-2 border-red-100 rounded-3xl shadow-[0_8px_30px_rgb(220,38,38,0.05)] animate-in fade-in slide-in-from-top-4 duration-500">
-              <div className="flex flex-col items-center text-center space-y-4">
-                <div className="p-3 bg-red-50 rounded-full text-red-600">
-                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                   </svg>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-slate-900">{error}</h3>
-                  {error.includes("not found") && (
-                    <div className="text-left bg-slate-50 border border-slate-100 p-6 rounded-2xl mt-4 space-y-3">
-                      <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Please double-check:</p>
-                      <ul className="space-y-2 text-slate-600 text-sm font-medium">
-                        <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div> Spelling and capitalization</li>
-                        <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div> Profile existence on GitHub</li>
-                        <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div> No leading or trailing spaces</li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
+          <div className="max-w-2xl mx-auto p-8 bg-white border-2 border-red-100 rounded-3xl shadow-[0_8px_30px_rgb(220,38,38,0.05)] animate-in fade-in slide-in-from-top-4 duration-500">
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="p-3 bg-red-50 rounded-full text-red-600">
+                 <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                 </svg>
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-slate-900">{error}</h3>
+                {error.includes("not found") && (
+                  <div className="text-left bg-slate-50 border border-slate-100 p-6 rounded-2xl mt-4 space-y-3">
+                    <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Please double-check:</p>
+                    <ul className="space-y-2 text-slate-600 text-sm font-medium">
+                      <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div> Spelling and capitalization</li>
+                      <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div> Profile existence on GitHub</li>
+                      <li className="flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div> No leading or trailing spaces</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
+          </div>
         )}
 
-        {/* Landing Page Content (Hides when searching or viewing results) */}
+        {/* Landing Page Content */}
         {!data && !isLoading && !error && (
           <div className="space-y-24 pb-12 animate-in fade-in duration-500">
              <Features />
@@ -139,6 +149,24 @@ export default function Home() {
         {/* Results Dashboard */}
         {data && !isLoading && (
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out space-y-24">
+            
+            {/* Share & Header */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-4 border-b border-slate-100">
+               <div>
+                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">Recruiter Report for @{searchedUsername}</h2>
+                 <p className="text-slate-400 text-sm font-medium mt-1 italic">Personalized AI evaluation and professional signals</p>
+               </div>
+               <div className="flex items-center gap-4">
+                 <button 
+                  onClick={handleShare}
+                  className={`flex items-center gap-2 px-6 py-3 ${copied ? 'bg-emerald-500 shadow-emerald-100' : 'bg-blue-600 shadow-blue-100/50'} text-white font-bold rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95`}
+                 >
+                   {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                   {copied ? 'Link Copied!' : 'Share Review Link'}
+                 </button>
+               </div>
+            </div>
+
             <KPIcards 
               assessment={data.overall_portfolio_assessment?.level}
               hireability={data.overall_portfolio_assessment?.hireability}

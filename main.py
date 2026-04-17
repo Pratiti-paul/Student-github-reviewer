@@ -39,13 +39,8 @@ else:
     logger.info("REDIS_URL not found. Persistent caching disabled.")
     redis_client = None
 
-@app.get("/")
-def home():
-    return {"message": "GitHub Reviewer backend is running perfectly!"}
-
-@app.post("/review")
-def review_portfolio(request: ReviewRequest):
-    username_lower = request.username.lower().strip()
+def get_or_compute_review(username: str):
+    username_lower = username.lower().strip()
     cache_key = f"review:{username_lower}"
     
     # 1. Check Redis Cache First
@@ -61,7 +56,7 @@ def review_portfolio(request: ReviewRequest):
     logger.info(f"CACHE MISS for {username_lower}. Computing insights...")
 
     # 2. Tell the LangGraph brain to start thinking
-    initial_state = {"username": request.username}
+    initial_state = {"username": username}
     result = github_reviewer_app.invoke(initial_state)
     
     # 3. Handle Errors coming from the graph
@@ -83,6 +78,18 @@ def review_portfolio(request: ReviewRequest):
             logger.warning(f"Redis SET failed: {e}")
             
     return feedback_data
+
+@app.get("/")
+def home():
+    return {"message": "GitHub Reviewer backend is running perfectly!"}
+
+@app.get("/review/{username}")
+def get_review(username: str):
+    return get_or_compute_review(username)
+
+@app.post("/review")
+def post_review(request: ReviewRequest):
+    return get_or_compute_review(request.username)
 
 @app.delete("/clear-cache/{username}")
 def clear_cache(username: str):
