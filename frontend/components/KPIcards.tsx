@@ -4,12 +4,14 @@ import { Target, Trophy, Briefcase, UserCheck } from 'lucide-react';
 interface KPIcardsProps {
   assessment?: string;
   hireability?: string;
+  summary?: string;
   totalProjects: number;
   topProjectsCount: number;
 }
 
 export default function KPIcards({ 
   assessment, 
+  summary,
   totalProjects, 
   topProjectsCount 
 }: KPIcardsProps) {
@@ -39,10 +41,17 @@ export default function KPIcards({
 
           <div className="space-y-6">
             <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Portfolio Level</p>
-            <div className="flex items-center gap-3">
-              <span className={`text-5xl font-black tracking-tight px-6 py-2 rounded-2xl border-2 ${getAssessmentColor(assessment)}`}>
-                {assessment || 'Analyzing...'}
-              </span>
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <span className={`text-5xl font-black tracking-tight px-6 py-2 rounded-2xl border-2 ${getAssessmentColor(assessment)}`}>
+                  {assessment || 'Analyzing...'}
+                </span>
+              </div>
+              {summary && (
+                <p className="text-slate-500 text-sm leading-relaxed font-medium italic border-l-2 border-slate-100 pl-4 mt-2">
+                  "{summary}"
+                </p>
+              )}
             </div>
           </div>
         </div>
