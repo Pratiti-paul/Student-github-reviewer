@@ -51,57 +51,63 @@ def extract_github_data(state: ReviewState):
 
 def code_mentor_review(state: ReviewState):
     username = state["username"]
-    data = state.get("github_data", {})
+    repos = state.get("github_data", [])
+    context = f"GitHub Username: {username}"
     
-    prompt = f"""You are a senior software engineer and hiring manager.
+    prompt = f"""You are a senior software engineer and hiring manager conducting a portfolio review.
 
-You are given EXACTLY 10 GitHub repositories of a developer (already filtered and sorted).
+DEVELOPER CONTEXT:
+{context}
+
+REPOSITORIES TO ANALYZE (exactly {len(repos)} repos):
+{json.dumps(repos, indent=2)}
+
+QUALITY RUBRIC (use this strictly):
+- Beginner: no README, single file, no structure, tutorial/copy-paste level
+- Intermediate: has README, organized folders, some abstraction, no tests or CI
+- Strong: README + tests or CI/CD, clear architecture, non-trivial original logic
 
 STRICT RULES:
+- Base ALL analysis ONLY on the provided repository data
+- If description is missing, say "No description provided" — do NOT invent purpose
+- Be specific: reference actual repo names, languages, and topics
+- Never use phrases like "diverse tech stack" or "strong foundation"
+- Same input must always produce same output
 
-* Do NOT generate random or vague responses
-* Base ALL insights ONLY on provided repositories
-* Be deterministic (same input = same output)
-* Avoid generic phrases like 'diverse tech stack'
+TASKS:
+1. For EACH repository: summarize purpose (from description/topics only), identify tech stack, evaluate quality using the rubric above, give 1 specific actionable improvement
+2. Identify top 3 strongest projects with reasoning tied to specific signals
+3. List technical strengths as patterns you see across multiple repos
+4. List concrete weaknesses (e.g. "0 of 10 repos have tests")
+5. List missing skills based on gaps in the stack
+6. Assess hireability with role fit and confidence level
+7. Flag any red flags honestly
 
-TASK:
-
-1. For EACH repository:
-
-   * Explain what the project likely does
-   * Identify tech stack
-   * Evaluate quality (Beginner / Intermediate / Strong)
-   * Give 1 specific improvement
-
-2. Then provide:
-
-   * Top 3 strongest projects (with reasoning)
-   * Technical strengths (based on patterns across repos)
-   * Weaknesses (clear gaps)
-   * Missing skills
-   * Final hireability level (with justification)
-
-Return STRICT JSON:
+Return STRICT JSON only, no markdown, no explanation outside JSON:
 {{
-"projects": [
-{{
-"name": "",
-"summary": "",
-"tech_stack": [],
-"quality": "",
-"improvement": ""
-}}
-],
-"top_projects": [],
-"strengths": [],
-"weaknesses": [],
-"missing_skills": [],
-"hireability": ""
-}}
-
-Data:
-{json.dumps(data, indent=2)}
-"""
+  "projects": [{{
+    "name": "",
+    "summary": "",
+    "tech_stack": [],
+    "quality": "Beginner | Intermediate | Strong",
+    "improvement": ""
+  }}],
+  "top_projects": [{{
+    "name": "",
+    "reasoning": ""
+  }}],
+  "strengths": [],
+  "weaknesses": [],
+  "missing_skills": [],
+  "red_flags": [],
+  "hireability": {{
+    "level": "Junior | Mid | Senior",
+    "confidence": "Low | Medium | High",
+    "reasoning": "",
+    "suitable_roles": [],
+    "not_suitable_for": []
+  }}
+}}"""
 
     response = llm.invoke([HumanMessage(content=prompt)])
     
@@ -127,7 +133,14 @@ Data:
             "strengths": [],
             "weaknesses": ["Failed to parse AI response. Please try again."],
             "missing_skills": [],
-            "hireability": "Unknown"
+            "red_flags": [],
+            "hireability": {
+                "level": "Unknown",
+                "confidence": "Low",
+                "reasoning": "Parse failure.",
+                "suitable_roles": [],
+                "not_suitable_for": []
+            }
         }
 
     return {"feedback": parsed_feedback}
