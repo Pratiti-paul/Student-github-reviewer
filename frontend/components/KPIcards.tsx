@@ -2,12 +2,12 @@ import React from 'react';
 import { Target, Trophy, Briefcase } from 'lucide-react';
 
 interface KPIcardsProps {
-  hireability: string;
+  overallScore?: number;
   totalProjects: number;
   topProjectsCount: number;
 }
 
-export default function KPIcards({ hireability, totalProjects, topProjectsCount }: KPIcardsProps) {
+export default function KPIcards({ overallScore, totalProjects, topProjectsCount }: KPIcardsProps) {
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -17,8 +17,8 @@ export default function KPIcards({ hireability, totalProjects, topProjectsCount 
           <Briefcase className="h-8 w-8" />
         </div>
         <div>
-          <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Hireability</p>
-          <h3 className="text-2xl font-bold text-slate-900">{hireability || 'Unknown'}</h3>
+          <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">Overall Score</p>
+          <h3 className="text-2xl font-bold text-slate-900">{overallScore !== undefined ? `${overallScore}/10` : 'N/A'}</h3>
         </div>
       </div>
 

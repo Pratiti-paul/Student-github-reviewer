@@ -1,11 +1,18 @@
 import React from 'react';
-import { Bot, Wrench, Sparkles, FolderGit2 } from 'lucide-react';
+import { Wrench, Sparkles, FolderGit2 } from 'lucide-react';
+
+export interface ProjectScore {
+  total: number;
+  breakdown: Record<string, number>;
+  justification: string;
+}
 
 export interface ProjectData {
   name: string;
   summary: string;
   tech_stack: string[];
   quality: string;
+  score?: ProjectScore;
   improvement: string;
 }
 
@@ -36,6 +43,11 @@ export default function Projects({ projects }: ProjectsProps) {
                 {proj.quality && (
                   <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ml-3 ${qualityColor}`}>
                     {proj.quality}
+                  </span>
+                )}
+                {proj.score && (
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full whitespace-nowrap ml-2 bg-blue-100 text-blue-800`}>
+                    Score: {proj.score.total}/10
                   </span>
                 )}
               </div>

@@ -16,12 +16,9 @@ interface TopProjectData {
   reasoning: string;
 }
 
-interface HireabilityData {
-  level: string;
-  confidence: string;
-  reasoning: string;
-  suitable_roles: string[];
-  not_suitable_for: string[];
+interface OverallPortfolioScore {
+  score: number;
+  summary: string;
 }
 
 interface PortfolioData {
@@ -31,7 +28,7 @@ interface PortfolioData {
   weaknesses?: string[];
   missing_skills?: string[];
   red_flags?: string[];
-  hireability?: HireabilityData;
+  overall_portfolio_score?: OverallPortfolioScore;
 }
 
 export default function Home() {
@@ -128,7 +125,7 @@ export default function Home() {
         {data && !isLoading && (
           <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
             <KPIcards 
-              hireability={data.hireability?.level || 'Unknown'} 
+              overallScore={data.overall_portfolio_score?.score} 
               totalProjects={data.projects?.length || 0}
               topProjectsCount={data.top_projects?.length || 0}
             />
