@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import redis
@@ -63,12 +63,20 @@ def review_portfolio(request: ReviewRequest):
     # 2. Tell the LangGraph brain to start thinking
     initial_state = {"username": request.username}
     result = github_reviewer_app.invoke(initial_state)
+    
+    # 3. Handle Errors coming from the graph
+    github_data = result.get("github_data", {})
+    if isinstance(github_data, dict) and "error" in github_data:
+        raise HTTPException(
+            status_code=github_data.get("status", 500),
+            detail=github_data.get("error")
+        )
+
     feedback_data = result.get("feedback", {})
     
-    # 3. Store result in Redis for 24 hours
+    # 4. Store result in Redis for 24 hours
     if redis_client:
         try:
-            # TTl is 86400 seconds (24 hours)
             redis_client.setex(cache_key, 86400, json.dumps(feedback_data))
             logger.info(f"Successfully cached insights for {username_lower}")
         except Exception as e:

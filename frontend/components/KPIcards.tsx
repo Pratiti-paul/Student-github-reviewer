@@ -62,9 +62,7 @@ export default function KPIcards({
           </div>
         </div>
 
-        <p className="text-slate-600 text-sm leading-relaxed font-semibold italic border-l-4 border-blue-200 pl-4 py-1">
-          "{summary || 'No summary available for this portfolio'}"
-        </p>
+
       </div>
 
       {/* Secondary Metric Cards Container */}

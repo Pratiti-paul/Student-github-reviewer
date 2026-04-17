@@ -88,24 +88,19 @@ def extract_github_data(state: ReviewState):
                 desc_pts = 10 if len(desc.strip()) > 20 else (5 if len(desc.strip()) > 0 else 0)
                 
                 # Formula: (stars * 0.4) + (forks * 0.2) + (recency * 0.2) + (activity * 0.1) + (desc * 0.1)
-                # We cap raw stars/forks contribution to keep the score manageable
                 base_score = (min(stars, 100) * 0.4) + (min(forks, 50) * 0.2) + (recency_pts * 0.2) + (activity_pts * 0.1) + (desc_pts * 0.1)
                 
                 # Penalties / Boosts
                 bonus = 0
                 penalty = 0
-                
-                # Penalty: Inactive > 2 years
                 if days_since_update > 730: penalty = 5
                 
-                # Boost: Modern Tech (AI, Web, Cloud)
                 modern_keywords = ['ai', 'ml', 'gpt', 'llm', 'react', 'nextjs', 'fastapi', 'cloud', 'aws', 'docker']
                 text_to_scan = f"{repo.get('name', '')} {desc} {repo.get('language', '')}".lower()
                 if any(kw in text_to_scan for kw in modern_keywords): bonus = 2
                 
                 score = max(0, base_score + bonus - penalty)
                 
-                # Ranking Reason helper
                 if penalty > 0: reason = "Project is stale/inactive"
                 elif stars > 50: reason = "Significant community trust and engagement"
                 elif recency_pts == 10: reason = "Highly active project with recent updates"
@@ -128,7 +123,6 @@ def extract_github_data(state: ReviewState):
                     "reason": reason
                 })
             
-            # Sort by Score descending
             scored_repos.sort(key=lambda x: x["score"], reverse=True)
             top_repos = scored_repos[:10]
             
@@ -144,11 +138,15 @@ def extract_github_data(state: ReviewState):
                 "user_profile": user_profile,
                 "metrics": metrics
             }
+        elif user_resp.status_code == 404:
+            return {"github_data": {"error": "GitHub user not found. Please check spelling, profile existence, and avoid extra spaces.", "status": 404}}
+        elif user_resp.status_code == 403:
+            return {"github_data": {"error": "GitHub API rate limit exceeded. Please try again later.", "status": 403}}
         else:
-            return {"github_data": {"error": f"API Error: User {username} not found."}}
+            return {"github_data": {"error": f"GitHub API returned error {user_resp.status_code}. Please try again.", "status": user_resp.status_code}}
             
     except Exception as e:
-        return {"github_data": {"error": str(e)}}
+        return {"github_data": {"error": f"An unexpected error occurred: {str(e)}", "status": 500}}
 
 def code_mentor_review(state: ReviewState):
     username = state["username"]
