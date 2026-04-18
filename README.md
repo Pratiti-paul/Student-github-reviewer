@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <title>RepoInsight README</title>
-</head>
+
 <body>
 
 <h1>RepoInsight</h1>
