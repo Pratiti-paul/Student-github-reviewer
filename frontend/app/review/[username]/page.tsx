@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useRouter } from 'next/navigation';
+import { useToast } from '@/context/ToastContext';
 import { Github, ArrowLeft, Share2, Check } from 'lucide-react';
 import KPIcards from '@/components/KPIcards';
 import Insights from '@/components/Insights';
@@ -57,7 +58,7 @@ export default function SharedReviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PortfolioData | null>(null);
-  const [copied, setCopied] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (username) {
@@ -76,10 +77,13 @@ export default function SharedReviewPage() {
         timeout: 60000 // 60 seconds safety for Render cold starts
       });
       setData(response.data as PortfolioData);
+      showToast("Report loaded successfully!", "success");
     } catch (err: any) {
       console.error("Error fetching shared review:", err.message);
       const detail = err.response?.data?.detail;
-      setError(detail || "Failed to load the review. The user may not exist or the link is invalid.");
+      const errorMsg = detail || "Failed to load the review.";
+      setError(errorMsg);
+      showToast(errorMsg, "error");
     } finally {
       setIsLoading(false);
     }
@@ -87,8 +91,7 @@ export default function SharedReviewPage() {
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    showToast("Review link copied!", "success");
   };
 
   if (isLoading) {
@@ -145,10 +148,10 @@ export default function SharedReviewPage() {
             </button>
             <button 
               onClick={handleShare}
-              className={`flex items-center gap-2 px-6 py-2.5 ${copied ? 'bg-[#4A7C40]' : 'bg-[#2A2116]'} text-[#F7F3ED] text-sm font-bold rounded-xl transition-all shadow-sm active:scale-95`}
+              className="flex items-center gap-2 px-6 py-2.5 bg-[#2A2116] text-[#F7F3ED] text-sm font-bold rounded-xl transition-all shadow-sm active:scale-95 hover:translate-y-[-1px]"
             >
-              {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-              {copied ? 'Link Copied!' : 'Share This Review'}
+              <Share2 className="w-4 h-4" />
+              Share This Review
             </button>
           </div>
         </div>

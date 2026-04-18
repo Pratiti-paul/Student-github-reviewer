@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useToast } from '../context/ToastContext';
 import { Github, Check, Share2 } from 'lucide-react';
 import SearchBar from '../components/SearchBar';
 import Features from '../components/Features';
@@ -56,8 +57,8 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PortfolioData | null>(null);
   const [searchedUsername, setSearchedUsername] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const [searchInput, setSearchInput] = useState('');
+  const { showToast } = useToast();
 
   const handleSearch = async (username: string) => {
     const cleanUsername = username.trim();
@@ -71,6 +72,7 @@ export default function Home() {
     setError(null);
     setData(null);
     setSearchedUsername(cleanUsername);
+    showToast(`Analyzing @${cleanUsername}...`, 'info');
 
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -95,7 +97,9 @@ export default function Home() {
       } else if (err.response?.status === 400) {
         setError(err.response?.data?.detail || "Invalid request. Please check the username.");
       } else {
-        setError("Something went wrong. Our servers might be busy. Please try again.");
+        const errorMsg = "Something went wrong. Our servers might be busy.";
+        setError(errorMsg);
+        showToast(errorMsg, 'error');
       }
     } finally {
       setIsLoading(false);
@@ -112,8 +116,7 @@ export default function Home() {
     if (!searchedUsername) return;
     const shareUrl = `${window.location.origin}/review/${searchedUsername}`;
     navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    showToast("Link copied to clipboard!", "success");
   };
 
   const handleReset = () => {
@@ -222,10 +225,10 @@ export default function Home() {
                  </button>
                  <button 
                   onClick={handleShare}
-                  className={`flex items-center gap-2 px-6 py-2.5 ${copied ? 'bg-[#4A7C40]' : 'bg-[#2A2116]'} text-[#F7F3ED] text-sm font-bold rounded-xl transition-all shadow-sm hover:translate-y-[-1px] active:translate-y-[0px]`}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-[#2A2116] text-[#F7F3ED] text-sm font-bold rounded-xl transition-all shadow-sm hover:translate-y-[-1px] active:translate-y-[0px]"
                  >
-                   {copied ? <Check className="w-3.5 h-3.5" /> : <Share2 className="w-3.5 h-3.5" />}
-                   {copied ? 'Link Copied!' : 'Share Review Link'}
+                   <Share2 className="w-3.5 h-3.5" />
+                   Share Review Link
                  </button>
                </div>
             </div>
