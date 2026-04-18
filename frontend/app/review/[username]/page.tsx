@@ -79,71 +79,69 @@ export default function SharedReviewPage() {
 
   if (isLoading) {
     return (
-      <main className="w-full pt-12 pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto flex flex-col items-center justify-center min-h-[60vh]">
-          <Loader />
-          <p className="mt-8 text-slate-400 font-medium animate-pulse italic">Retrieving persistent analysis for {username}...</p>
-        </div>
+      <main className="w-full min-h-screen bg-[#F7F3ED] pt-12">
+        <Loader />
       </main>
     );
   }
 
   if (error) {
     return (
-      <main className="w-full pt-12 pb-24 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-xl mx-auto mt-20 p-12 bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.02)] border border-red-50 text-center space-y-8 animate-fade-in-up">
-          <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto text-red-500">
-            <Github className="w-10 h-10" />
-          </div>
-          <div className="space-y-4">
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Review Not Found</h1>
-            <p className="text-slate-500 font-medium leading-relaxed">{error}</p>
-          </div>
-          <button 
-            onClick={() => router.push('/')}
-            className="flex items-center justify-center gap-2 w-full py-4 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
-          >
-            <ArrowLeft className="w-5 h-5" /> Back to Search
-          </button>
+      <main className="w-full min-h-screen bg-[#F7F3ED] pt-12 pb-24 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mx-auto p-12 bg-white border border-[#E2D9CC] rounded-2xl shadow-sm text-center space-y-6 animate-fade-in-up">
+           <div className="flex flex-col items-center">
+              <div className="p-4 bg-[#F5E8E4] rounded-2xl text-[#B85040] mb-4">
+                 <Github className="h-8 w-8" />
+              </div>
+              <h3 className="text-2xl font-bold text-[#2A2116]">Review Not Found</h3>
+              <p className="text-[#8B7A66] font-medium mt-2">{error}</p>
+           </div>
+           <button 
+             onClick={() => router.push('/')}
+             className="flex items-center justify-center gap-2 mx-auto px-8 py-3 bg-[#2A2116] text-[#F7F3ED] font-bold rounded-xl hover:bg-[#3D3020] transition-all"
+           >
+             <ArrowLeft className="w-5 h-5" /> Back to Dashboard
+           </button>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="w-full pt-12 pb-24 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-24">
+    <main className="w-full min-h-screen bg-[#F7F3ED] pt-12 pb-24 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-6xl mx-auto space-y-10">
         
-        {/* Header & Actions */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-slate-100">
-          <div className="space-y-2 text-center md:text-left">
-            <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight">
-              Review for <span className="text-blue-600">@{username}</span>
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-[#E2D9CC]">
+          <div className="space-y-1 text-center md:text-left">
+            <h1 className="text-3xl font-bold text-[#2A2116] tracking-tight">
+              Recruiter Report for <span className="text-[#8B6F47]">@{username}</span>
             </h1>
-            <p className="text-slate-400 font-medium text-sm flex items-center justify-center md:justify-start gap-2">
-               <Check className="w-4 h-4 text-emerald-500" /> Shareable report link is active
+            <p className="text-[#B8A898] text-xs font-medium font-sans italic flex items-center justify-center md:justify-start gap-2">
+               <Check className="w-4 h-4 text-[#4A7C40]" /> This is a persistent, shareable portfolio analysis.
             </p>
           </div>
           
           <div className="flex items-center gap-4">
             <button 
               onClick={() => router.push('/')}
-              className="flex items-center gap-2 px-6 py-3 text-slate-600 font-bold text-sm hover:text-slate-900 transition-colors"
+              className="px-6 py-2.5 bg-[#EDE6DC] border border-[#D9CEBD] text-[#2A2116] text-sm font-bold rounded-xl hover:bg-[#D9CEBD] transition-all"
             >
-              Search New
+              Analyze New Profile
             </button>
             <button 
               onClick={handleShare}
-              className={`flex items-center gap-2 px-6 py-3 ${copied ? 'bg-emerald-500 shadow-emerald-100' : 'bg-blue-600 shadow-blue-100'} text-white font-bold rounded-2xl transition-all shadow-lg hover:scale-105 active:scale-95`}
+              className={`flex items-center gap-2 px-6 py-2.5 ${copied ? 'bg-[#4A7C40]' : 'bg-[#2A2116]'} text-[#F7F3ED] text-sm font-bold rounded-xl transition-all shadow-sm active:scale-95`}
             >
-              {copied ? <><Check className="w-4 h-4" /> Link Copied</> : <><Share2 className="w-4 h-4" /> Share Review</>}
+              {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+              {copied ? 'Link Copied!' : 'Share This Review'}
             </button>
           </div>
         </div>
 
         {/* Results Dashboard */}
         {data && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out space-y-20">
+          <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out space-y-10">
             <KPIcards 
               assessment={data.overall_portfolio_assessment?.level}
               hireability={data.overall_portfolio_assessment?.hireability}
@@ -153,7 +151,7 @@ export default function SharedReviewPage() {
             />
 
             {/* Visual Analytics Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">
                 <ContributionHeatmap 
                   total={data.metrics?.contribution_heatmap?.total || 0}
