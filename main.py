@@ -12,21 +12,33 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
+# Refined CORS to include production URLs
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://repo-insight-7hv9yx07k-pratitis-projects.vercel.app"
+        "https://repo-insight-7hv9yx07k-pratitis-projects.vercel.app",
+        "https://repoinsight-sjb.onrender.com",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Print all registered routes on startup for debugging."""
+    logger.info("=== REGISTERED ROUTES ===")
+    for route in app.routes:
+        methods = ", ".join(route.methods) if hasattr(route, "methods") else "GET"
+        logger.info(f"Route: {route.path} | Methods: [{methods}]")
+    logger.info("=========================")
+
 class ReviewRequest(BaseModel):
     username: str
 
+# ... (Previous Redis and get_or_compute_review code remains same) ...
 REDIS_URL = os.getenv("REDIS_URL")
 if REDIS_URL:
     try:
@@ -73,7 +85,6 @@ def get_or_compute_review(username: str):
         )
 
     # 4. Prepare Unified Response
-    # We merge feedback fields (which contains 'projects') and add extra raw metadata
     feedback = result.get("feedback", {})
     full_response = {
         **feedback,
@@ -95,6 +106,12 @@ def get_or_compute_review(username: str):
 @app.get("/")
 def home():
     return {"message": "GitHub Reviewer backend is running perfectly!"}
+
+@app.get("/test")
+@app.post("/test")
+def test_route():
+    """Temporary debug route to verify connectivity."""
+    return {"status": "ok", "message": "Backend connectivity verified!"}
 
 @app.get("/review/{username}")
 def get_review(username: str):
@@ -120,3 +137,4 @@ def clear_cache(username: str):
     except Exception as e:
         logger.error(f"Redis DELETE failed: {e}")
         return {"error": "Failed to clear cache"}
+
