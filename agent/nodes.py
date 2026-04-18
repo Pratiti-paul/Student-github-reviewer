@@ -161,10 +161,16 @@ async def extract_github_data(state: ReviewState):
         repo_nodes = gql_data.get("repositories", {}).get("nodes", [])
         
         for repo in repo_nodes:
+            if not repo:
+                continue
+                
             # Stats for languages
-            for edge in repo.get("languages", {}).get("edges", []):
-                lang_name = edge.get("node", {}).get("name")
-                lang_stats[lang_name] += edge.get("size", 0)
+            languages_node = repo.get("languages") or {}
+            for edge in languages_node.get("edges") or []:
+                if edge and edge.get("node"):
+                    lang_name = edge.get("node").get("name")
+                    if lang_name:
+                        lang_stats[lang_name] += edge.get("size", 0)
             
             # Repo metrics
             stars = repo.get("stargazerCount", 0)
@@ -179,12 +185,14 @@ async def extract_github_data(state: ReviewState):
             
             score = (min(stars, 100) * 0.5) + (min(forks, 50) * 0.3) + (max(0, 10 - (days_since_update // 30)) * 0.2)
             
+            primary_lang_node = repo.get("primaryLanguage") or {}
+            
             top_repos.append({
                 "name": repo.get("name"),
                 "description": repo.get("description") or "No description provided",
                 "stars": stars,
                 "forks": forks,
-                "language": repo.get("primaryLanguage", {}).get("name") or "Unknown",
+                "language": primary_lang_node.get("name") or "Unknown",
                 "updated_at": updated_at_str,
                 "score": round(score, 1)
             })
@@ -215,7 +223,7 @@ async def extract_github_data(state: ReviewState):
         }
             
     except Exception as e:
-        print(f"CRITICAL ERROR in extract_github_data: {e}")
+        logger.error(f"CRITICAL ERROR in extract_github_data: {e}", exc_info=True)
         return {"github_data": {"error": f"An unexpected error occurred: {str(e)}", "status": 500}}
 
 async def code_mentor_review(state: ReviewState):
